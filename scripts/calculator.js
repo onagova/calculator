@@ -1,3 +1,19 @@
+setupNumberButtons();
+
+function setupNumberButtons() {
+    const numberButtons = document.querySelectorAll('.number-button');
+
+    numberButtons.forEach(button => {
+        button.addEventListener('click', appendCharToDisplay);
+    });  
+}
+
+function appendCharToDisplay(e) {
+    const char = e.target.getAttribute('data-char');
+    const display = document.querySelector('.calculator-display');
+    display.textContent += char;
+}
+
 const OPERATOR_ADD = '&#43;';
 const OPERATOR_SUBTRACT = '&#8722;';
 const OPERATOR_MULTIPLY = '&#215;';
