@@ -5,7 +5,8 @@
         <meta charset="UTF-8"/>
     </head>
     <body>
-        <div class="calculator-display"></div>
+        <div id="calculator-input-display"></div>
+        <div id="calculator-evaluated-display"></div>
         <div class="buttons-container">
             <button class="number-button" data-char="0">0</button>
             <button class="number-button" data-char="1">1</button>
@@ -22,8 +23,9 @@
             <button class="operator-button" data-charcode="0x0D7">&times;</button>
             <button class="operator-button" data-charcode="0x0F7">&divide;</button>
             <button class="equals-button">&equals;</button>
-            <button>C</button>
+            <button class="clear-button">C</button>
         </div>
+
         <script src="scripts/calculator.js"></script>
     </body>
 </html>
