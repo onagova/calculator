@@ -13,9 +13,18 @@ function startCalculator() {
 }
 
 function setupButtons(expression) {
+    let checkedFirstZero = true;
+
     const numberButtons = document.querySelectorAll('.number-button');
     numberButtons.forEach(button => {
         button.addEventListener('click', e => {
+            if (!checkedFirstZero) {
+                if (expression[0] == '0') {
+                    expression[0] = '';
+                }
+                checkedFirstZero = true;
+            }
+
             const char = e.target.getAttribute('data-char');
             appendChar(expression, char);
             updateInputDisplay(expression);
@@ -26,6 +35,13 @@ function setupButtons(expression) {
     const operatorButtons = document.querySelectorAll('.operator-button');
     operatorButtons.forEach(button => {
         button.addEventListener('click', e => {
+            if (!checkedFirstZero) {
+                if (expression[0] == '0') {
+                    expression[0] = '';
+                }
+                checkedFirstZero = true;
+            }
+
             const operator = e.target.getAttribute('data-charcode');
             appendOperator(expression, operator);
             updateInputDisplay(expression);
@@ -51,12 +67,15 @@ function setupButtons(expression) {
         expression = getUntrimmed(evaluated);
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
+        checkedFirstZero = false;
     });
 
     const clearButton = document.querySelector('.clear-button');
     clearButton.addEventListener('click', () => {
         expression = [''];
         updateInputDisplay(expression);
+        updateEvaluatedDisplay(null);
+        checkedFirstZero = true;
     });
 }
 
