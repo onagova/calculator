@@ -74,8 +74,6 @@ function setupButtons(expression) {
         } else {
             removeLastChar(expression);
         }
-
-        debugger;
         
         updateInputDisplay(expression);
         displayForwardEvaluation(expression);
