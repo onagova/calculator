@@ -18,12 +18,7 @@ function setupButtons(expression) {
     const numberButtons = document.querySelectorAll('.number-button');
     numberButtons.forEach(button => {
         button.addEventListener('click', e => {
-            if (!checkedFirstZero) {
-                if (expression[0] == '0') {
-                    expression[0] = '';
-                }
-                checkedFirstZero = true;
-            }
+            clearFirstZero();
 
             const char = e.target.getAttribute('data-char');
             appendChar(expression, char);
@@ -32,15 +27,17 @@ function setupButtons(expression) {
         });
     });
 
+    const decimalPointButton = document.querySelector('.decimal-point-button');
+    decimalPointButton.addEventListener('click', () => {
+        clearFirstZero();
+        appendDecimalPoint(expression);
+        updateInputDisplay(expression);
+    });
+
     const operatorButtons = document.querySelectorAll('.operator-button');
     operatorButtons.forEach(button => {
         button.addEventListener('click', e => {
-            if (!checkedFirstZero) {
-                if (expression[0] == '0') {
-                    expression[0] = '';
-                }
-                checkedFirstZero = true;
-            }
+            clearFirstZero();
 
             const operator = e.target.getAttribute('data-charcode');
             appendOperator(expression, operator);
@@ -77,10 +74,24 @@ function setupButtons(expression) {
         updateEvaluatedDisplay(null);
         checkedFirstZero = true;
     });
+
+    function clearFirstZero() {
+        if (!checkedFirstZero) {
+            if (expression[0] == '0') {
+                expression[0] = '';
+            }
+            checkedFirstZero = true;
+        }
+    }
 }
 
 function appendChar(expression, char) {
     expression[expression.length - 1] += char;
+}
+
+function appendDecimalPoint(expression) {
+    if (expression[expression.length - 1].includes('.')) return;
+    appendChar(expression, '.');
 }
 
 function appendOperator(expression, operator) {
@@ -112,6 +123,8 @@ function appendOperator(expression, operator) {
 
         return;
     }
+
+    if (isNaN(expression[expression.length - 1])) return;
 
     expression.push(String.fromCharCode(operator));
     expression.push('');
@@ -147,7 +160,9 @@ function displayForwardEvaluation(expression) {
 function getTrimmed(expression) {
     let trimmed = Array.from(expression);
 
-    if (trimmed.length >= 2 && trimmed[trimmed.length - 1] == '') {
+    if (trimmed.length >= 2 &&
+        (trimmed[trimmed.length - 1] == '' || isNaN(trimmed[trimmed.length - 1]))) 
+    {
         trimmed = isNaN(trimmed[trimmed.length - 3]) ? // in case the last operator is a unary minus
                 trimmed.slice(0, -3) :
                 trimmed.slice(0, -2);
@@ -188,9 +203,11 @@ function getEvaluated(expression) {
 }
 
 function evaluate(expression) {
+    if (expression.length < 2) return expression;
+
     const divIndex = expression.indexOf(String.fromCharCode(OPERATOR_DIVIDE));
 
-    if (divIndex >= 0 && expression[divIndex + 1] == '0') return ERROR_DIVIDED_BY_ZERO;
+    if (divIndex >= 0 && expression[divIndex + 1] == 0) return ERROR_DIVIDED_BY_ZERO;
 
     const addIndex = expression.indexOf(String.fromCharCode(OPERATOR_ADD));
     const subIndex = expression.indexOf(String.fromCharCode(OPERATOR_SUBTRACT));
