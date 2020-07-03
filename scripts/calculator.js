@@ -84,28 +84,30 @@ function appendChar(expression, char) {
 }
 
 function appendOperator(expression, operator) {
-    if (expression[expression.length - 1] == String.fromCharCode(OPERATOR_SUBTRACT)) return;
-
     if (expression[expression.length - 1] == '') {
         if (expression.length > 1) {
+            if (isNaN(expression[expression.length - 3])) return;
+
             if (operator == OPERATOR_SUBTRACT) {
                 switch (expression[expression.length - 2]) {
                     case String.fromCharCode(OPERATOR_ADD):
-                        expression[expression.length - 2] = String.fromCharCode(PERATOR_SUBTRACT);
+                        expression[expression.length - 2] = String.fromCharCode(OPERATOR_SUBTRACT);
                         break;
 
                     case String.fromCharCode(OPERATOR_SUBTRACT):
                         break;
 
                     default:
-                        appendChar(expression, String.fromCharCode(OPERATOR_SUBTRACT));
+                        expression[expression.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
+                        expression.push('');
                         break;
                 }
             } else {
                 expression[expression.length - 2] = String.fromCharCode(operator);
-            }
+            }            
         } else if (operator == OPERATOR_SUBTRACT) {
-            appendChar(expression, String.fromCharCode(OPERATOR_SUBTRACT));
+            expression[expression.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
+            expression.push('');
         }
 
         return;
@@ -137,27 +139,31 @@ function displayForwardEvaluation(expression) {
         default:
             break;
     }
-    
+
     evaluated = getUntrimmed(evaluated);
-    updateEvaluatedDisplay(evaluated[0]);
+    updateEvaluatedDisplay(evaluated.join(''));
 }
 
 function getTrimmed(expression) {
     let trimmed = Array.from(expression);
 
-    if (trimmed[trimmed.length - 1] == String.fromCharCode(OPERATOR_SUBTRACT)) {
-        trimmed[trimmed.length - 1] = '';
+    if (trimmed.length >= 2 && trimmed[trimmed.length - 1] == '') {
+        trimmed = isNaN(trimmed[trimmed.length - 3]) ? // in case the last operator is a unary minus
+                trimmed.slice(0, -3) :
+                trimmed.slice(0, -2);
     }
 
-    if (trimmed.length > 2 && trimmed[trimmed.length - 1] == '') {
-        trimmed = trimmed.slice(0, -2);
+    for (let i = 0; i < trimmed.length; i++) {
+        if (trimmed[i] == String.fromCharCode(OPERATOR_SUBTRACT)) {
+            if (i == 0) {
+                trimmed[i + 1] *= -1;
+                trimmed.shift();
+            } else if (isNaN(trimmed[i - 1])) {
+                trimmed[i + 1] *= -1;
+                trimmed.splice(i, 1);
+            }
+        }
     }
-
-    trimmed = trimmed.map(str => {
-        return str[0] == String.fromCharCode(OPERATOR_SUBTRACT) && str.length > 1 ?
-                `-${str.slice(1)}` :
-                str;
-    });
 
     return trimmed;
 }
@@ -167,7 +173,8 @@ function getUntrimmed(expression) {
 
     if (untrimmed[0] >= 0) return untrimmed;
 
-    untrimmed[0] = `${String.fromCharCode(OPERATOR_SUBTRACT)}${Math.abs(untrimmed)}`;
+    untrimmed[0] *= -1;
+    untrimmed.unshift(String.fromCharCode(OPERATOR_SUBTRACT));
 
     return untrimmed;
 }
