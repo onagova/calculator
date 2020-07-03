@@ -9,44 +9,109 @@ startCalculator();
 function startCalculator() {
     let expression = [''];
 
-    setupButtons(expression);
+    setupButtonsAndKeyboard(expression);
 }
 
-function setupButtons(expression) {
+function setupButtonsAndKeyboard(expression) {
     let checkedFirstZero = true;
 
     const numberButtons = document.querySelectorAll('.number-button');
     numberButtons.forEach(button => {
         button.addEventListener('click', e => {
-            clearFirstZero();
-
             const char = e.target.getAttribute('data-char');
-            appendChar(expression, char);
-            updateInputDisplay(expression);
-            displayForwardEvaluation(expression);
+            onNumber(char);
         });
     });
 
     const decimalPointButton = document.querySelector('.decimal-point-button');
-    decimalPointButton.addEventListener('click', () => {
-        clearFirstZero();
-        appendDecimalPoint(expression);
-        updateInputDisplay(expression);
-    });
+    decimalPointButton.addEventListener('click', onDecimal);
 
     const operatorButtons = document.querySelectorAll('.operator-button');
     operatorButtons.forEach(button => {
         button.addEventListener('click', e => {
-            clearFirstZero();
-
             const operator = e.target.getAttribute('data-charcode');
-            appendOperator(expression, operator);
-            updateInputDisplay(expression);
+            onOperator(operator);
         })
     });
 
     const equalsButton = document.querySelector('.equals-button');
-    equalsButton.addEventListener('click', () => {
+    equalsButton.addEventListener('click', onEquals);
+
+    const backButton = document.querySelector('.back-button');
+    backButton.addEventListener('click', onBack);
+
+    const clearButton = document.querySelector('.clear-button');
+    clearButton.addEventListener('click', onClear);
+
+    window.addEventListener('keydown', e => {
+        document.activeElement.blur();
+
+        if (!isNaN(e.key)) {
+            onNumber(e.key);
+            return;
+        }
+
+        switch (e.key) {
+            case '.':
+                onDecimal();
+                break;
+
+            case '=':
+            case 'Enter':
+                onEquals();
+                break;
+
+            case 'Backspace':
+                onBack();
+                break;
+
+            case 'c':
+            case 'C':
+                onClear();
+                break;
+
+            case '+':
+                onOperator(OPERATOR_ADD);
+                break;
+            
+            case '-':
+                onOperator(OPERATOR_SUBTRACT);
+                break;
+
+            case '*':
+                onOperator(OPERATOR_MULTIPLY);
+                break;
+
+            case '/':
+                e.preventDefault(); // prevent quick find stealing keydown event
+                onOperator(OPERATOR_DIVIDE);
+                break;
+
+            default:
+                break;
+        }
+    });
+
+    function onNumber(char) {
+        clearFirstZero();
+        appendChar(expression, char);
+        updateInputDisplay(expression);
+        displayForwardEvaluation(expression);
+    }
+
+    function onDecimal() {
+        clearFirstZero();
+        appendDecimalPoint(expression);
+        updateInputDisplay(expression);
+    }
+
+    function onOperator(operator) {
+        clearFirstZero();
+        appendOperator(expression, operator);
+        updateInputDisplay(expression);
+    }
+
+    function onEquals() {
         const evaluated = getEvaluated(expression);
 
         switch (evaluated) {
@@ -65,10 +130,9 @@ function setupButtons(expression) {
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
         checkedFirstZero = false;
-    });
+    }
 
-    const backButton = document.querySelector('.back-button');
-    backButton.addEventListener('click', () => {
+    function onBack() {
         if (expression[expression.length - 1] == '') {
             removeLastOperator(expression);
         } else {
@@ -77,15 +141,14 @@ function setupButtons(expression) {
         
         updateInputDisplay(expression);
         displayForwardEvaluation(expression);
-    });
+    }
 
-    const clearButton = document.querySelector('.clear-button');
-    clearButton.addEventListener('click', () => {
+    function onClear() {
         expression.splice(0, expression.length, '');
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
         checkedFirstZero = true;
-    });
+    }
 
     function clearFirstZero() {
         if (!checkedFirstZero) {
