@@ -61,7 +61,7 @@ function setupButtons(expression) {
                 break;
         }
         
-        expression = getUntrimmed(evaluated);
+        expression.splice(0, expression.length, ...getUntrimmed(evaluated));
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
         checkedFirstZero = false;
@@ -83,7 +83,7 @@ function setupButtons(expression) {
 
     const clearButton = document.querySelector('.clear-button');
     clearButton.addEventListener('click', () => {
-        expression = [''];
+        expression.splice(0, expression.length, '');
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
         checkedFirstZero = true;
