@@ -7,7 +7,7 @@ const ERROR_DIVIDED_BY_ZERO = 0;
 startCalculator();
 
 function startCalculator() {
-    let expression = [''];
+    const expression = [''];
 
     setupButtonsAndKeyboard(expression);
 }
