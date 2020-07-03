@@ -67,6 +67,20 @@ function setupButtons(expression) {
         checkedFirstZero = false;
     });
 
+    const backButton = document.querySelector('.back-button');
+    backButton.addEventListener('click', () => {
+        if (expression[expression.length - 1] == '') {
+            removeLastOperator(expression);
+        } else {
+            removeLastChar(expression);
+        }
+
+        debugger;
+        
+        updateInputDisplay(expression);
+        displayForwardEvaluation(expression);
+    });
+
     const clearButton = document.querySelector('.clear-button');
     clearButton.addEventListener('click', () => {
         expression = [''];
@@ -128,6 +142,25 @@ function appendOperator(expression, operator) {
 
     expression.push(String.fromCharCode(operator));
     expression.push('');
+}
+
+function removeLastChar(expression) {
+    expression[expression.length - 1] = expression[expression.length - 1].slice(0, -1);
+}
+
+function removeLastOperator(expression) {
+    if (expression.length == 1) return;
+
+    if (expression.length < 3) {
+        expression.shift();
+        return;
+    }
+
+    if (isNaN(expression[expression.length - 3])) { // unary operator case
+        expression.splice(expression.length - 2, 1);
+    } else {
+        expression.splice(expression.length - 2, 2);
+    }
 }
 
 function updateInputDisplay(expression) {
