@@ -2,7 +2,10 @@ const OPERATOR_ADD = '0x002B';
 const OPERATOR_SUBTRACT = '0x2212';
 const OPERATOR_MULTIPLY = '0x00D7';
 const OPERATOR_DIVIDE = '0x00F7';
+
 const ERROR_DIVIDED_BY_ZERO = 0;
+
+const COLOR_ERROR = 'hsl(15, 100%, 40%)';
 
 startCalculator();
 
@@ -121,7 +124,9 @@ function setupButtonsAndKeyboard(expression) {
                 return;
 
             case ERROR_DIVIDED_BY_ZERO:
-                updateEvaluatedDisplay('Can\'t divide by 0');
+                updateInputDisplay(expression, COLOR_ERROR);
+                updateEvaluatedDisplay('Can\'t divide by 0', COLOR_ERROR);
+                flashDisplays(COLOR_ERROR);
                 return;
 
             default:
@@ -226,17 +231,19 @@ function removeLastOperator(expression) {
     }
 }
 
-function updateInputDisplay(expression) {
+function updateInputDisplay(expression, color = null) {
     const display = document.querySelector('#calculator-input-display');
     const shortened = expression.map(item => shortenNumber(item));
     let str = shortened.join('');
     display.textContent = !str ? '\n' : str;
+    display.style.color = color;
 }
 
-function updateEvaluatedDisplay(str) {
+function updateEvaluatedDisplay(str, color = null) {
     const display = document.querySelector('#calculator-evaluated-display');
     str = shortenNumber(str);
     display.textContent = !str ? '\n' : str;
+    display.style.color = color;
 }
 
 function displayForwardEvaluation(expression) {
@@ -436,4 +443,17 @@ function getDigits(n) {
 function getDecimals(str) {
     const decimalIndex = str.indexOf('.');
     return decimalIndex < 0 ? 0 : str.length - (decimalIndex + 1);
+}
+
+function flashDisplays(color) {
+    const container = document.querySelector('#displays-container');
+    const flash = document.createElement('div');
+    flash.classList.add('flash');
+    flash.style.backgroundColor = color;
+
+    flash.addEventListener('animationend', () => {
+        container.removeChild(flash);
+    });
+
+    container.appendChild(flash);
 }

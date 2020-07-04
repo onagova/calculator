@@ -15,6 +15,8 @@ body {
     width: 554px;
     text-align: right;
     overflow: hidden;
+
+    position: relative;
 }
 
 #displays-container > div {
@@ -56,6 +58,39 @@ body {
     background-color: transparent;
     border: none;
     padding: 0;
+    cursor: pointer;
+    text-shadow: 0 0 transparent;
+    transition: text-shadow 0.25s;
+
+    position: relative;
+    z-index: 1;
+}
+
+#buttons-container button:hover {
+    text-shadow: 5px 5px hsl(0, 0%, 80%);
+}
+
+#buttons-container button::before {
+    content: "";
+    background-color: hsl(0, 0%, 88%);
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.6s;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+}
+
+#buttons-container button:active::before {
+    width: 0px;
+    height: 0px;
+    opacity: 1;
+    transition: 0s;
 }
 
 #number-buttons-container {
@@ -101,4 +136,23 @@ body {
 
 #operator-buttons-container > .clear-button {
     display: none;
+}
+
+.flash {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+
+    animation-name: flash;
+    animation-duration: 1.5s;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+@keyframes flash {
+    0% {opacity: 0;}
+    15% {opacity: 1;}
+    100% {opacity: 0;}
 }
