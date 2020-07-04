@@ -1,0 +1,104 @@
+body {
+    text-align: center;
+}
+
+#calculator-container {
+    display: inline-block;
+    background-color: gray;
+    margin: 0 auto;
+    /* border: 1px solid black; */
+    box-shadow: 0 0 4px 2px hsl(0, 0%, 60%);
+}
+
+#displays-container {
+    background-color: white;
+    width: 554px;
+    text-align: right;
+    overflow: hidden;
+}
+
+#displays-container > div {
+    white-space: pre-line;
+}
+
+#calculator-input-display {
+    padding-top: 48px;
+    padding-right: 32px;
+    font-size: 56px;
+}
+
+#calculator-evaluated-display {
+    color: hsl(0, 0%, 50%);
+    padding: 28px 32px 28px 0;
+    font-size: 42px;
+}
+
+#buttons-container {
+    display: flex;
+    background-color: hsl(0, 0%, 96%);
+
+    position: relative;
+}
+
+#buttons-container::after {
+    content: "";
+    box-shadow: inset 0 6px 8px -6px hsl(0, 0%, 50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#buttons-container button {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
+
+#number-buttons-container {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    width: 390px;
+    height: 560px;
+    padding-bottom: 16px;
+}
+
+#number-buttons-container > button {
+    flex: 1 0 33%;
+    order: 4;
+    font-size: 42px;
+}
+
+#number-buttons-container > button[data-char="0"] {
+    order: 1;
+}
+
+#number-buttons-container > .decimal-point-button {
+    order: 2;
+}
+
+#number-buttons-container > .equals-button {
+    order: 3;
+}
+
+#operator-buttons-container {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 130px;
+    border-right: 32px solid hsl(220, 100%, 40%);
+    border-left: 2px solid hsl(0, 0%, 88%);
+    padding-bottom: 16px;
+}
+
+#operator-buttons-container > button {
+    color: hsl(220, 100%, 40%);
+    flex: 1 0 20%;
+    font-size: 28px;
+}
+
+#operator-buttons-container > .clear-button {
+    display: none;
+}
