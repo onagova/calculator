@@ -235,6 +235,7 @@ function updateInputDisplay(expression) {
 
 function updateEvaluatedDisplay(str) {
     const display = document.querySelector('#calculator-evaluated-display');
+    str = shortenNumber(str);
     display.textContent = !str ? '\n' : str;
 }
 
@@ -286,7 +287,7 @@ function getUntrimmed(expression) {
 
     if (untrimmed[0] >= 0) return untrimmed;
 
-    untrimmed[0] *= -1;
+    untrimmed[0] = untrimmed[0].slice(1);
     untrimmed.unshift(String.fromCharCode(OPERATOR_SUBTRACT));
 
     return untrimmed;
@@ -402,16 +403,16 @@ function shortenNumber(str) {
     }
 
     const decimals = getDecimals(str);
-    if (decimals > (6 + 1)) {
+    if (decimals > 6) {
         const decimalArray = str.slice(-decimals).split('');
         const nonZeroIndex = decimalArray.findIndex(char => char != 0) + 1;
         n = roundToDecimal(n * (10 ** nonZeroIndex), 2); // use first zero decimal as first integer
         str = `${n}e${-nonZeroIndex}`;
-
+        
         return str;
     }
 
-    return str[0] == '.' ? str : n;
+    return str.includes('.') ? str : n.toString();
 }
 
 function roundToDecimal(number, places) {
