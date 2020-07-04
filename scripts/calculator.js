@@ -404,11 +404,13 @@ function shortenNumber(str) {
 
     const decimals = getDecimals(str);
     if (decimals > 6) {
+        if (n >= 1) return roundToDecimal(n, 6).toString();
+
         const decimalArray = str.slice(-decimals).split('');
         const nonZeroIndex = decimalArray.findIndex(char => char != 0) + 1;
         n = roundToDecimal(n * (10 ** nonZeroIndex), 2); // use first zero decimal as first integer
         str = `${n}e${-nonZeroIndex}`;
-        
+
         return str;
     }
 
