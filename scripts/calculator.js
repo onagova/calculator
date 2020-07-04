@@ -10,10 +10,12 @@ function startCalculator() {
     const expression = [''];
 
     setupButtonsAndKeyboard(expression);
+    updateInputDisplay(['']);
+    updateEvaluatedDisplay('');
 }
 
 function setupButtonsAndKeyboard(expression) {
-    let checkedFirstZero = true;
+    // let checkedFirstZero = true;
 
     const numberButtons = document.querySelectorAll('.number-button');
     numberButtons.forEach(button => {
@@ -93,20 +95,20 @@ function setupButtonsAndKeyboard(expression) {
     });
 
     function onNumber(char) {
-        clearFirstZero();
+        // clearFirstZero();
         appendChar(expression, char);
         updateInputDisplay(expression);
         displayForwardEvaluation(expression);
     }
 
     function onDecimal() {
-        clearFirstZero();
+        // clearFirstZero();
         appendDecimalPoint(expression);
         updateInputDisplay(expression);
     }
 
     function onOperator(operator) {
-        clearFirstZero();
+        // clearFirstZero();
         appendOperator(expression, operator);
         updateInputDisplay(expression);
     }
@@ -119,7 +121,7 @@ function setupButtonsAndKeyboard(expression) {
                 return;
 
             case ERROR_DIVIDED_BY_ZERO:
-                updateEvaluatedDisplay('Divide by zero is against the rule and you know it.');
+                updateEvaluatedDisplay('Can\'t divide by 0');
                 return;
 
             default:
@@ -129,7 +131,7 @@ function setupButtonsAndKeyboard(expression) {
         expression.splice(0, expression.length, ...getUntrimmed(evaluated));
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
-        checkedFirstZero = false;
+        // checkedFirstZero = false;
     }
 
     function onBack() {
@@ -147,17 +149,17 @@ function setupButtonsAndKeyboard(expression) {
         expression.splice(0, expression.length, '');
         updateInputDisplay(expression);
         updateEvaluatedDisplay(null);
-        checkedFirstZero = true;
+        // checkedFirstZero = true;
     }
 
-    function clearFirstZero() {
-        if (!checkedFirstZero) {
-            if (expression[0] == '0') {
-                expression[0] = '';
-            }
-            checkedFirstZero = true;
-        }
-    }
+    // function clearFirstZero() {
+    //     if (!checkedFirstZero) {
+    //         if (expression[0] == '0') {
+    //             expression[0] = '';
+    //         }
+    //         checkedFirstZero = true;
+    //     }
+    // }
 }
 
 function appendChar(expression, char) {
@@ -226,12 +228,14 @@ function removeLastOperator(expression) {
 
 function updateInputDisplay(expression) {
     const display = document.querySelector('#calculator-input-display');
-    display.textContent = expression.join('');
+    const shortened = expression.map(item => shortenNumber(item));
+    let str = shortened.join('');
+    display.textContent = !str ? '\n' : str;
 }
 
 function updateEvaluatedDisplay(str) {
     const display = document.querySelector('#calculator-evaluated-display');
-    display.textContent = str;
+    display.textContent = !str ? '\n' : str;
 }
 
 function displayForwardEvaluation(expression) {
@@ -380,4 +384,53 @@ function multiply(a, b) {
 
 function divide(a, b) {
     return a / b;
+}
+
+function shortenNumber(str) {
+    if (!str || isNaN(str)) return str;
+
+    let n = +str;
+
+    const digits = getDigits(n);
+    if (digits > 6) {
+        const excessCycle = Math.floor((digits - 1) / 3);
+        const e = 3 * excessCycle;
+        n = roundToDecimal(n / (10 ** e), 2);
+        str = `${n}e${e}`;
+
+        return str;
+    }
+
+    const decimals = getDecimals(str);
+    if (decimals > (6 + 1)) {
+        const decimalArray = str.slice(-decimals).split('');
+        const nonZeroIndex = decimalArray.findIndex(char => char != 0) + 1;
+        n = roundToDecimal(n * (10 ** nonZeroIndex), 2); // use first zero decimal as first integer
+        str = `${n}e${-nonZeroIndex}`;
+
+        return str;
+    }
+
+    return str[0] == '.' ? str : n;
+}
+
+function roundToDecimal(number, places) {
+    const multiplier = 10 ** places;
+    return Math.round(number * multiplier) / multiplier;
+}
+
+function getDigits(n) {
+    let digits = 0;
+
+    while (n >= 1) {
+        digits++;
+        n /= 10;
+    }
+
+    return digits;
+}
+
+function getDecimals(str) {
+    const decimalIndex = str.indexOf('.');
+    return decimalIndex < 0 ? 0 : str.length - (decimalIndex + 1);
 }
