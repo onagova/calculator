@@ -6,6 +6,7 @@ const OPERATOR_DIVIDE = '0x00F7';
 const ERROR_DIVIDED_BY_ZERO = 0;
 
 const COLOR_ERROR = 'hsl(15, 100%, 40%)';
+const COLOR_CLEAR = 'hsl(220, 100%, 80%)';
 
 startCalculator();
 
@@ -13,6 +14,7 @@ function startCalculator() {
     const expression = [''];
 
     setupButtonsAndKeyboard(expression);
+    setupHoldToClear(expression);
     updateInputDisplay(['']);
     updateEvaluatedDisplay('');
 }
@@ -151,10 +153,7 @@ function setupButtonsAndKeyboard(expression) {
     }
 
     function onClear() {
-        expression.splice(0, expression.length, '');
-        updateInputDisplay(expression);
-        updateEvaluatedDisplay(null);
-        // checkedFirstZero = true;
+        clearExpression(expression);
     }
 
     // function clearFirstZero() {
@@ -165,6 +164,35 @@ function setupButtonsAndKeyboard(expression) {
     //         checkedFirstZero = true;
     //     }
     // }
+}
+
+function setupHoldToClear(expression) {
+    let timer;
+
+    const backButton = document.querySelector('.back-button');
+    backButton.addEventListener('mousedown', onMouseDown);
+    backButton.addEventListener('mouseleave', clearTimer);
+    document.body.addEventListener('mouseup', clearTimer);
+
+    function onMouseDown() {
+        clearTimer();
+        timer = window.setTimeout(() => {
+            clearExpression(expression);
+        }, 700);
+    }
+
+    function clearTimer() {
+        if (timer) {
+            window.clearTimeout(timer);
+        }
+    }
+}
+
+function clearExpression(expression) {
+    expression.splice(0, expression.length, '');
+    updateInputDisplay(expression);
+    updateEvaluatedDisplay(null);
+    flashDisplays(COLOR_CLEAR);
 }
 
 function appendChar(expression, char) {
