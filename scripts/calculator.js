@@ -261,15 +261,13 @@ function removeLastOperator(expression) {
 
 function updateInputDisplay(expression, color = null) {
     const display = document.querySelector('#calculator-input-display');
-    const shortened = expression.map(item => shortenNumber(item));
-    let str = shortened.join('');
+    let str = expression.join('');
     display.textContent = !str ? '\n' : str;
     display.style.color = color;
 }
 
 function updateEvaluatedDisplay(str, color = null) {
     const display = document.querySelector('#calculator-evaluated-display');
-    str = shortenNumber(str);
     display.textContent = !str ? '\n' : str;
     display.style.color = color;
 }
@@ -422,56 +420,56 @@ function divide(a, b) {
     return a / b;
 }
 
-function shortenNumber(str) {
-    if (!str || isNaN(str)) return str;
+// function shortenNumber(str) {
+//     if (!str || isNaN(str)) return str;
 
-    let n = +str;
+//     let n = +str;
 
-    const digits = getDigits(n);
-    if (digits > 6) {
-        const excessCycle = Math.floor((digits - 1) / 3);
-        const e = 3 * excessCycle;
-        n = roundToDecimal(n / (10 ** e), 2);
-        str = `${n}e${e}`;
+//     const digits = getDigits(n);
+//     if (digits > 6) {
+//         const excessCycle = Math.floor((digits - 1) / 3);
+//         const e = 3 * excessCycle;
+//         n = roundToDecimal(n / (10 ** e), 2);
+//         str = `${n}e${e}`;
 
-        return str;
-    }
+//         return str;
+//     }
 
-    const decimals = getDecimals(str);
-    if (decimals > 6) {
-        if (n >= 1) return roundToDecimal(n, 6).toString();
+//     const decimals = getDecimals(str);
+//     if (decimals > 6) {
+//         if (n >= 1) return roundToDecimal(n, 6).toString();
 
-        const decimalArray = str.slice(-decimals).split('');
-        const nonZeroIndex = decimalArray.findIndex(char => char != 0) + 1;
-        n = roundToDecimal(n * (10 ** nonZeroIndex), 2); // use first zero decimal as first integer
-        str = `${n}e${-nonZeroIndex}`;
+//         const decimalArray = str.slice(-decimals).split('');
+//         const nonZeroIndex = decimalArray.findIndex(char => char != 0) + 1;
+//         n = roundToDecimal(n * (10 ** nonZeroIndex), 2); // use first zero decimal as first integer
+//         str = `${n}e${-nonZeroIndex}`;
 
-        return str;
-    }
+//         return str;
+//     }
 
-    return str.includes('.') ? str : n.toString();
-}
+//     return str.includes('.') ? str : n.toString();
+// }
 
-function roundToDecimal(number, places) {
-    const multiplier = 10 ** places;
-    return Math.round(number * multiplier) / multiplier;
-}
+// function roundToDecimal(number, places) {
+//     const multiplier = 10 ** places;
+//     return Math.round(number * multiplier) / multiplier;
+// }
 
-function getDigits(n) {
-    let digits = 0;
+// function getDigits(n) {
+//     let digits = 0;
 
-    while (n >= 1) {
-        digits++;
-        n /= 10;
-    }
+//     while (n >= 1) {
+//         digits++;
+//         n /= 10;
+//     }
 
-    return digits;
-}
+//     return digits;
+// }
 
-function getDecimals(str) {
-    const decimalIndex = str.indexOf('.');
-    return decimalIndex < 0 ? 0 : str.length - (decimalIndex + 1);
-}
+// function getDecimals(str) {
+//     const decimalIndex = str.indexOf('.');
+//     return decimalIndex < 0 ? 0 : str.length - (decimalIndex + 1);
+// }
 
 function flashDisplays(color) {
     const container = document.querySelector('#displays-container');
