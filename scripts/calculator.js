@@ -202,6 +202,8 @@ function setupButtonsAndKeyboard(calculator) {
     const equalsButton = document.querySelector('.equals-button');
     const backButton = document.querySelector('.back-button');
     const clearButton = document.querySelector('.clear-button');
+
+    let lastEvaluated;
     
     numberButtons.forEach(button => {
         button.addEventListener('click', e => {
@@ -273,17 +275,20 @@ function setupButtonsAndKeyboard(calculator) {
     });
 
     function onNumber(char) {
+        clearLastEvaluated();
         calculator.appendChar(char);
         updateInputDisplay(calculator.expression);
         displayForwardEvaluation(calculator.getEvaluated());
     }
 
     function onOperator(operator) {
+        pushLastEvaluated();
         calculator.appendOperator(operator);
         updateInputDisplay(calculator.expression);
     }
 
     function onDecimal() {
+        clearLastEvaluated();
         calculator.appendDecimalPoint();
         updateInputDisplay(calculator.expression);
     }
@@ -305,9 +310,9 @@ function setupButtonsAndKeyboard(calculator) {
                 break;
         }
         
-        // expression.splice(0, expression.length, ...getUntrimmed(evaluated));
-        calculator.expression = evaluated;
-        updateInputDisplay(calculator.expression);
+        calculator.clear();
+        setLastEvaluated(evaluated);
+        updateInputDisplay(evaluated);
         updateEvaluatedDisplay(null);
     }
 
@@ -319,6 +324,7 @@ function setupButtonsAndKeyboard(calculator) {
 
     function onClear() {
         calculator.clear();
+        clearLastEvaluated();
         updateInputDisplay(calculator.expression);
         updateEvaluatedDisplay(null);
         flashDisplays(COLOR_CLEAR);
@@ -343,6 +349,25 @@ function setupButtonsAndKeyboard(calculator) {
                 window.clearTimeout(timer);
             }
         }
+    }
+
+    function setLastEvaluated(exp) {
+        lastEvaluated = exp;
+        backButton.style.display = 'none';
+        clearButton.style.display = 'initial'
+    }
+
+    function clearLastEvaluated() {
+        lastEvaluated = null;
+        backButton.style.display = 'initial';
+        clearButton.style.display = 'none'
+    }
+
+    function pushLastEvaluated() {
+        if (!lastEvaluated) return;
+
+        calculator.expression = lastEvaluated;
+        clearLastEvaluated();
     }
 }
 
