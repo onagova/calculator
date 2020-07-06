@@ -7,6 +7,7 @@ body {
     background-color: gray;
     margin: 0 auto;
     box-shadow: 0 0 4px 2px hsl(0, 0%, 60%);
+    font-family: 'Lato', sans-serif;
 }
 
 #displays-container {
@@ -90,6 +91,10 @@ body {
     height: 0px;
     opacity: 1;
     transition: 0s;
+}
+
+#buttons-container button:not(.material-icons-outlined) {
+    font-family: inherit;
 }
 
 #number-buttons-container {
