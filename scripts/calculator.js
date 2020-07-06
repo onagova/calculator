@@ -11,18 +11,198 @@ const COLOR_CLEAR = 'hsl(220, 100%, 80%)';
 startCalculator();
 
 function startCalculator() {
-    const expression = [''];
+    const calculator = {
+        expression: [''],
+        clear: function() {
+            this.expression = [''];
+        },
+        appendChar: function(char) {
+            this.expression[this.expression.length - 1] += char;
+        },
+        appendOperator: function(operator) {
+            const exp = this.expression;
 
-    setupButtonsAndKeyboard(expression);
-    setupHoldToClear(expression);
+            if (exp[exp.length - 1] == '') {
+                if (exp.length > 1) {
+                    if (isNaN(exp[exp.length - 3])) return;
+        
+                    if (operator == OPERATOR_SUBTRACT) {
+                        switch (exp[exp.length - 2]) {
+                            case String.fromCharCode(OPERATOR_ADD):
+                                exp[exp.length - 2] = String.fromCharCode(OPERATOR_SUBTRACT);
+                                break;
+        
+                            case String.fromCharCode(OPERATOR_SUBTRACT):
+                                break;
+        
+                            default:
+                                exp[exp.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
+                                exp.push('');
+                                break;
+                        }
+                    } else {
+                        exp[exp.length - 2] = String.fromCharCode(operator);
+                    }            
+                } else if (operator == OPERATOR_SUBTRACT) {
+                    exp[exp.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
+                    exp.push('');
+                }
+        
+                return;
+            }
+        
+            if (isNaN(exp[exp.length - 1])) return;
+        
+            exp.push(String.fromCharCode(operator));
+            exp.push('');
+        },
+        appendDecimalPoint: function() {
+            if (this.expression[this.expression.length - 1].includes('.')) return;
+            this.appendChar('.');
+        },
+        removeLastItem: function() {
+            if (this.expression[this.expression.length - 1] == '') {
+                this.removeLastOperator();
+            } else {
+                this.removeLastChar();
+            }
+        },
+        removeLastChar: function() {
+            const exp = this.expression;
+            exp[exp.length - 1] = exp[exp.length - 1].slice(0, -1);
+        },
+        removeLastOperator: function() {
+            const exp = this.expression;
+
+            if (exp.length == 1) return;
+        
+            if (exp.length < 3) {
+                exp.shift();
+                return;
+            }
+        
+            if (isNaN(exp[exp.length - 3])) { // unary operator case
+                exp.splice(exp.length - 2, 1);
+            } else {
+                exp.splice(exp.length - 2, 2);
+            }
+        },
+        getEvaluated: function() {
+            let evaluated = this.getTrimmed(this.expression);
+        
+            if (evaluated.length <= 1) return null;
+
+            evaluated = this.evaluate(evaluated);
+
+            switch (evaluated) {
+                case ERROR_DIVIDED_BY_ZERO:
+                    return evaluated;
+
+                default:
+                    return this.getUntrimmed(evaluated);
+            }
+        },
+        getTrimmed: function(exp) {
+            let trimmed = Array.from(exp);
+        
+            if (trimmed.length >= 2 &&
+                (trimmed[trimmed.length - 1] == '' || isNaN(trimmed[trimmed.length - 1]))) 
+            {
+                trimmed = isNaN(trimmed[trimmed.length - 3]) ? // in case the last operator is a unary minus
+                        trimmed.slice(0, -3) :
+                        trimmed.slice(0, -2);
+            }
+        
+            for (let i = 0; i < trimmed.length; i++) {
+                if (trimmed[i] == String.fromCharCode(OPERATOR_SUBTRACT)) {
+                    if (i == 0) {
+                        trimmed[i + 1] *= -1;
+                        trimmed.shift();
+                    } else if (isNaN(trimmed[i - 1])) {
+                        trimmed[i + 1] *= -1;
+                        trimmed.splice(i, 1);
+                    }
+                }
+            }
+        
+            return trimmed;
+        }, 
+        getUntrimmed: function(exp) {
+            const untrimmed = Array.from(exp);
+        
+            if (untrimmed[0] >= 0) return untrimmed;
+        
+            untrimmed[0] = untrimmed[0].slice(1);
+            untrimmed.unshift(String.fromCharCode(OPERATOR_SUBTRACT));
+        
+            return untrimmed;
+        },
+        evaluate: function(exp) {
+            if (exp.length < 2) return exp;
+        
+            const divIndex = exp.indexOf(String.fromCharCode(OPERATOR_DIVIDE));
+        
+            if (divIndex >= 0 && exp[divIndex + 1] == 0) return ERROR_DIVIDED_BY_ZERO;
+        
+            const addIndex = exp.indexOf(String.fromCharCode(OPERATOR_ADD));
+            const subIndex = exp.indexOf(String.fromCharCode(OPERATOR_SUBTRACT));
+            const mulIndex = exp.indexOf(String.fromCharCode(OPERATOR_MULTIPLY));
+        
+            let index, operator;
+        
+            if (mulIndex >= 0 && divIndex >= 0) {
+                if (mulIndex < divIndex) {
+                    index = mulIndex;
+                    operator = OPERATOR_MULTIPLY;
+                } else {
+                    index = divIndex;
+                    operator = OPERATOR_SUBTRACT;
+                }
+            } else if (mulIndex >= 0) {
+                index = mulIndex;
+                operator = OPERATOR_MULTIPLY;
+            } else if (divIndex >= 0) {
+                index = divIndex;
+                operator = OPERATOR_DIVIDE;
+            } else if (addIndex >= 0 && subIndex >= 0) {
+                if (addIndex < subIndex) {
+                    index = addIndex;
+                    operator = OPERATOR_ADD;
+                } else {
+                    index = subIndex;
+                    operator = OPERATOR_SUBTRACT;
+                }
+            } else if (addIndex >= 0) {
+                index = addIndex;
+                operator = OPERATOR_ADD;
+            } else if (subIndex >= 0) {
+                index = subIndex;
+                operator = OPERATOR_SUBTRACT;
+            } else {
+                return exp;
+            }
+        
+            const operated = operate(operator, +exp[index - 1], +exp[index + 1]);
+            exp.splice(index - 1, 3, operated.toString());
+        
+            return this.evaluate(exp);
+        }
+    };
+
     updateInputDisplay(['']);
     updateEvaluatedDisplay('');
+    setupButtonsAndKeyboard(calculator);
 }
 
-function setupButtonsAndKeyboard(expression) {
-    // let checkedFirstZero = true;
-
+function setupButtonsAndKeyboard(calculator) {
     const numberButtons = document.querySelectorAll('.number-button');
+    const operatorButtons = document.querySelectorAll('.operator-button');
+
+    const decimalPointButton = document.querySelector('.decimal-point-button');
+    const equalsButton = document.querySelector('.equals-button');
+    const backButton = document.querySelector('.back-button');
+    const clearButton = document.querySelector('.clear-button');
+    
     numberButtons.forEach(button => {
         button.addEventListener('click', e => {
             const char = e.target.getAttribute('data-char');
@@ -30,25 +210,18 @@ function setupButtonsAndKeyboard(expression) {
         });
     });
 
-    const decimalPointButton = document.querySelector('.decimal-point-button');
-    decimalPointButton.addEventListener('click', onDecimal);
-
-    const operatorButtons = document.querySelectorAll('.operator-button');
     operatorButtons.forEach(button => {
         button.addEventListener('click', e => {
             const operator = e.target.getAttribute('data-charcode');
             onOperator(operator);
         })
     });
-
-    const equalsButton = document.querySelector('.equals-button');
+    
+    decimalPointButton.addEventListener('click', onDecimal);
     equalsButton.addEventListener('click', onEquals);
-
-    const backButton = document.querySelector('.back-button');
     backButton.addEventListener('click', onBack);
-
-    const clearButton = document.querySelector('.clear-button');
     clearButton.addEventListener('click', onClear);
+    setupHoldToClear();
 
     window.addEventListener('keydown', e => {
         document.activeElement.blur();
@@ -100,33 +273,30 @@ function setupButtonsAndKeyboard(expression) {
     });
 
     function onNumber(char) {
-        // clearFirstZero();
-        appendChar(expression, char);
-        updateInputDisplay(expression);
-        displayForwardEvaluation(expression);
-    }
-
-    function onDecimal() {
-        // clearFirstZero();
-        appendDecimalPoint(expression);
-        updateInputDisplay(expression);
+        calculator.appendChar(char);
+        updateInputDisplay(calculator.expression);
+        displayForwardEvaluation(calculator.getEvaluated());
     }
 
     function onOperator(operator) {
-        // clearFirstZero();
-        appendOperator(expression, operator);
-        updateInputDisplay(expression);
+        calculator.appendOperator(operator);
+        updateInputDisplay(calculator.expression);
+    }
+
+    function onDecimal() {
+        calculator.appendDecimalPoint();
+        updateInputDisplay(calculator.expression);
     }
 
     function onEquals() {
-        const evaluated = getEvaluated(expression);
+        const evaluated = calculator.getEvaluated();
 
         switch (evaluated) {
             case null:
                 return;
 
             case ERROR_DIVIDED_BY_ZERO:
-                updateInputDisplay(expression, COLOR_ERROR);
+                updateInputDisplay(calculator.expression, COLOR_ERROR);
                 updateEvaluatedDisplay('Can\'t divide by 0', COLOR_ERROR);
                 flashDisplays(COLOR_ERROR);
                 return;
@@ -135,127 +305,44 @@ function setupButtonsAndKeyboard(expression) {
                 break;
         }
         
-        expression.splice(0, expression.length, ...getUntrimmed(evaluated));
-        updateInputDisplay(expression);
+        // expression.splice(0, expression.length, ...getUntrimmed(evaluated));
+        calculator.expression = evaluated;
+        updateInputDisplay(calculator.expression);
         updateEvaluatedDisplay(null);
-        // checkedFirstZero = false;
     }
 
     function onBack() {
-        if (expression[expression.length - 1] == '') {
-            removeLastOperator(expression);
-        } else {
-            removeLastChar(expression);
-        }
-        
-        updateInputDisplay(expression);
-        displayForwardEvaluation(expression);
+        calculator.removeLastItem();
+        updateInputDisplay(calculator.expression);
+        displayForwardEvaluation(calculator.getEvaluated());
     }
 
     function onClear() {
-        clearExpression(expression);
+        calculator.clear();
+        updateInputDisplay(calculator.expression);
+        updateEvaluatedDisplay(null);
+        flashDisplays(COLOR_CLEAR);
     }
 
-    // function clearFirstZero() {
-    //     if (!checkedFirstZero) {
-    //         if (expression[0] == '0') {
-    //             expression[0] = '';
-    //         }
-    //         checkedFirstZero = true;
-    //     }
-    // }
-}
+    function setupHoldToClear() {
+        let timer;
 
-function setupHoldToClear(expression) {
-    let timer;
+        backButton.addEventListener('mousedown', onMouseDown);
+        backButton.addEventListener('mouseleave', clearTimer);
+        document.body.addEventListener('mouseup', clearTimer);
 
-    const backButton = document.querySelector('.back-button');
-    backButton.addEventListener('mousedown', onMouseDown);
-    backButton.addEventListener('mouseleave', clearTimer);
-    document.body.addEventListener('mouseup', clearTimer);
-
-    function onMouseDown() {
-        clearTimer();
-        timer = window.setTimeout(() => {
-            clearExpression(expression);
-        }, 700);
-    }
-
-    function clearTimer() {
-        if (timer) {
-            window.clearTimeout(timer);
-        }
-    }
-}
-
-function clearExpression(expression) {
-    expression.splice(0, expression.length, '');
-    updateInputDisplay(expression);
-    updateEvaluatedDisplay(null);
-    flashDisplays(COLOR_CLEAR);
-}
-
-function appendChar(expression, char) {
-    expression[expression.length - 1] += char;
-}
-
-function appendDecimalPoint(expression) {
-    if (expression[expression.length - 1].includes('.')) return;
-    appendChar(expression, '.');
-}
-
-function appendOperator(expression, operator) {
-    if (expression[expression.length - 1] == '') {
-        if (expression.length > 1) {
-            if (isNaN(expression[expression.length - 3])) return;
-
-            if (operator == OPERATOR_SUBTRACT) {
-                switch (expression[expression.length - 2]) {
-                    case String.fromCharCode(OPERATOR_ADD):
-                        expression[expression.length - 2] = String.fromCharCode(OPERATOR_SUBTRACT);
-                        break;
-
-                    case String.fromCharCode(OPERATOR_SUBTRACT):
-                        break;
-
-                    default:
-                        expression[expression.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
-                        expression.push('');
-                        break;
-                }
-            } else {
-                expression[expression.length - 2] = String.fromCharCode(operator);
-            }            
-        } else if (operator == OPERATOR_SUBTRACT) {
-            expression[expression.length - 1] = String.fromCharCode(OPERATOR_SUBTRACT);
-            expression.push('');
+        function onMouseDown() {
+            clearTimer();
+            timer = window.setTimeout(() => {
+                onClear();
+            }, 700);
         }
 
-        return;
-    }
-
-    if (isNaN(expression[expression.length - 1])) return;
-
-    expression.push(String.fromCharCode(operator));
-    expression.push('');
-}
-
-function removeLastChar(expression) {
-    expression[expression.length - 1] = expression[expression.length - 1].slice(0, -1);
-}
-
-function removeLastOperator(expression) {
-    if (expression.length == 1) return;
-
-    if (expression.length < 3) {
-        expression.shift();
-        return;
-    }
-
-    if (isNaN(expression[expression.length - 3])) { // unary operator case
-        expression.splice(expression.length - 2, 1);
-    } else {
-        expression.splice(expression.length - 2, 2);
+        function clearTimer() {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+        }
     }
 }
 
@@ -272,9 +359,7 @@ function updateEvaluatedDisplay(str, color = null) {
     display.style.color = color;
 }
 
-function displayForwardEvaluation(expression) {
-    let evaluated = getEvaluated(expression);
-
+function displayForwardEvaluation(evaluated) {
     switch (evaluated) {
         case null:
         case ERROR_DIVIDED_BY_ZERO:
@@ -285,104 +370,20 @@ function displayForwardEvaluation(expression) {
             break;
     }
 
-    evaluated = getUntrimmed(evaluated);
     updateEvaluatedDisplay(evaluated.join(''));
 }
 
-function getTrimmed(expression) {
-    let trimmed = Array.from(expression);
+function flashDisplays(color) {
+    const container = document.querySelector('#displays-container');
+    const flash = document.createElement('div');
+    flash.classList.add('flash');
+    flash.style.backgroundColor = color;
 
-    if (trimmed.length >= 2 &&
-        (trimmed[trimmed.length - 1] == '' || isNaN(trimmed[trimmed.length - 1]))) 
-    {
-        trimmed = isNaN(trimmed[trimmed.length - 3]) ? // in case the last operator is a unary minus
-                trimmed.slice(0, -3) :
-                trimmed.slice(0, -2);
-    }
+    flash.addEventListener('animationend', () => {
+        container.removeChild(flash);
+    });
 
-    for (let i = 0; i < trimmed.length; i++) {
-        if (trimmed[i] == String.fromCharCode(OPERATOR_SUBTRACT)) {
-            if (i == 0) {
-                trimmed[i + 1] *= -1;
-                trimmed.shift();
-            } else if (isNaN(trimmed[i - 1])) {
-                trimmed[i + 1] *= -1;
-                trimmed.splice(i, 1);
-            }
-        }
-    }
-
-    return trimmed;
-}
-
-function getUntrimmed(expression) {
-    const untrimmed = Array.from(expression);
-
-    if (untrimmed[0] >= 0) return untrimmed;
-
-    untrimmed[0] = untrimmed[0].slice(1);
-    untrimmed.unshift(String.fromCharCode(OPERATOR_SUBTRACT));
-
-    return untrimmed;
-}
-
-function getEvaluated(expression) {
-    const trimmed = getTrimmed(expression);
-
-    if (trimmed.length <= 1) return null;
-
-    return evaluate(trimmed);
-}
-
-function evaluate(expression) {
-    if (expression.length < 2) return expression;
-
-    const divIndex = expression.indexOf(String.fromCharCode(OPERATOR_DIVIDE));
-
-    if (divIndex >= 0 && expression[divIndex + 1] == 0) return ERROR_DIVIDED_BY_ZERO;
-
-    const addIndex = expression.indexOf(String.fromCharCode(OPERATOR_ADD));
-    const subIndex = expression.indexOf(String.fromCharCode(OPERATOR_SUBTRACT));
-    const mulIndex = expression.indexOf(String.fromCharCode(OPERATOR_MULTIPLY));
-
-    let index, operator;
-
-    if (mulIndex >= 0 && divIndex >= 0) {
-        if (mulIndex < divIndex) {
-            index = mulIndex;
-            operator = OPERATOR_MULTIPLY;
-        } else {
-            index = divIndex;
-            operator = OPERATOR_SUBTRACT;
-        }
-    } else if (mulIndex >= 0) {
-        index = mulIndex;
-        operator = OPERATOR_MULTIPLY;
-    } else if (divIndex >= 0) {
-        index = divIndex;
-        operator = OPERATOR_DIVIDE;
-    } else if (addIndex >= 0 && subIndex >= 0) {
-        if (addIndex < subIndex) {
-            index = addIndex;
-            operator = OPERATOR_ADD;
-        } else {
-            index = subIndex;
-            operator = OPERATOR_SUBTRACT;
-        }
-    } else if (addIndex >= 0) {
-        index = addIndex;
-        operator = OPERATOR_ADD;
-    } else if (subIndex >= 0) {
-        index = subIndex;
-        operator = OPERATOR_SUBTRACT;
-    } else {
-        return expression;
-    }
-
-    const operated = operate(operator, +expression[index - 1], +expression[index + 1]);
-    expression.splice(index - 1, 3, operated.toString());
-
-    return evaluate(expression);
+    container.appendChild(flash);
 }
 
 function operate(operator, a, b) {
@@ -470,16 +471,3 @@ function divide(a, b) {
 //     const decimalIndex = str.indexOf('.');
 //     return decimalIndex < 0 ? 0 : str.length - (decimalIndex + 1);
 // }
-
-function flashDisplays(color) {
-    const container = document.querySelector('#displays-container');
-    const flash = document.createElement('div');
-    flash.classList.add('flash');
-    flash.style.backgroundColor = color;
-
-    flash.addEventListener('animationend', () => {
-        container.removeChild(flash);
-    });
-
-    container.appendChild(flash);
-}
