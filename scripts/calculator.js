@@ -13,6 +13,7 @@ startCalculator();
 function startCalculator() {
     const calculator = {
         expression: [''],
+        maxDecimalPlaces: 6,
         clear: function() {
             this.expression = [''];
         },
@@ -93,6 +94,7 @@ function startCalculator() {
             if (evaluated.length <= 1) return null;
 
             evaluated = this.evaluate(evaluated);
+            evaluated[0] = roundToDecimal(+evaluated[0], this.maxDecimalPlaces).toString();
 
             switch (evaluated) {
                 case ERROR_DIVIDED_BY_ZERO:
@@ -459,6 +461,11 @@ function divide(a, b) {
     return a / b;
 }
 
+function roundToDecimal(num, places) {
+    const multiplier = 10 ** places;
+    return Math.round((num + Number.EPSILON) * multiplier) / multiplier;
+}
+
 // function shortenNumber(str) {
 //     if (!str || isNaN(str)) return str;
 
@@ -487,11 +494,6 @@ function divide(a, b) {
 //     }
 
 //     return str.includes('.') ? str : n.toString();
-// }
-
-// function roundToDecimal(number, places) {
-//     const multiplier = 10 ** places;
-//     return Math.round(number * multiplier) / multiplier;
 // }
 
 // function getDigits(n) {
