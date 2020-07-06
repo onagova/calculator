@@ -348,15 +348,28 @@ function setupButtonsAndKeyboard(calculator) {
 
 function updateInputDisplay(expression, color = null) {
     const display = document.querySelector('#calculator-input-display');
+    const span = getInnerSpan(display);
     let str = expression.join('');
-    display.textContent = !str ? '\n' : str;
-    display.style.color = color;
+    span.textContent = !str ? '\n' : str;
+    span.style.color = color;
 }
 
 function updateEvaluatedDisplay(str, color = null) {
     const display = document.querySelector('#calculator-evaluated-display');
-    display.textContent = !str ? '\n' : str;
-    display.style.color = color;
+    const span = getInnerSpan(display);
+    span.textContent = !str ? '\n' : str;
+    span.style.color = color;
+}
+
+function getInnerSpan(node) {
+    let span = node.querySelector('span');
+
+    if (!span) {
+        span = document.createElement('span');
+        node.appendChild(span);
+    }
+
+    return span;
 }
 
 function displayForwardEvaluation(evaluated) {

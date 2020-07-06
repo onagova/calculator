@@ -6,21 +6,20 @@ body {
     display: inline-block;
     background-color: gray;
     margin: 0 auto;
-    /* border: 1px solid black; */
     box-shadow: 0 0 4px 2px hsl(0, 0%, 60%);
 }
 
 #displays-container {
     background-color: white;
     width: 554px;
-    text-align: right;
-    overflow: hidden;
 
     position: relative;
 }
 
 #displays-container > div {
     white-space: pre-line;
+    text-align: right;
+    overflow: hidden;
 }
 
 #calculator-input-display {
@@ -155,4 +154,13 @@ body {
     0% {opacity: 0;}
     15% {opacity: 1;}
     100% {opacity: 0;}
+}
+
+.rtl-overflow {
+    direction: rtl;
+}
+
+.rtl-overflow > span {
+    display: inline-block;
+    direction: ltr;
 }
